@@ -81,7 +81,21 @@
 
 ## Grade-local
 
-- Pending a live OpenRouter key: no key is pushed and none was found in
-  the workspace, so a live trial cannot score until one is available.
-  Run the no-key trial to smoke-test wire/catalog/failover handling, then
-  re-run live once the key is pushed.
+- Live grade-local CANNOT run yet: it refuses without a provider key
+  (`ANTHROPIC_API_KEY` / `OPENAI_API_KEY`), and no OpenRouter key is
+  pushed (`secrets ls`: none) and none exists in the environment or
+  workspace. A live trial needs the OpenRouter key — that is the Stage 1
+  blocker, for the user to supply.
+- Smoke test instead (kit env + local mock gateway answering the token,
+  official scorer, no cassette): all 3 practice trials 6/6 valid,
+  39/39 checks, served 100, wire 100, failover 100, catalog 100,
+  score 40 — quality 0 only because there is no gateway cassette to
+  prove the models, which is expected without a real key. Routing was
+  exactly as designed (JSON → super-vl, rest → inkling), 6 upstream
+  calls, 1 per prompt, `--list` byte-identical to the registered catalog.
+- Failover test (mock refuses the first inkling call with 429): the
+  prompt still served validly via super-vl, failure recorded in the
+  state, failover_handled 1/1, still 6/6 valid and 39/39 checks.
+- With real OpenRouter calls proving the same routing, quality should
+  reach 100 (best model per requirement on every prompt) and the live
+  score should reach 100.
